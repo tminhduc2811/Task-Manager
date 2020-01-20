@@ -1,4 +1,4 @@
-package task_manager
+package main
 import (
 	"./common"
 	"./controllers"
@@ -14,18 +14,24 @@ func main()  {
 	if err != nil {
 		panic(err)
 	}
-	dbConnect, err := mgo.Dial(config.DatabaseName)
+	dbConnect, err := mgo.Dial(config.DatabaseAddr)
 	if err != nil {
 		println(err)
 		panic(err)
 	}
 	taskRepo := repository.NewMgoTaskRepository(dbConnect, config.DatabaseName, config.TaskCollection)
+	userRepo := repository.NewMgoUserRepository(dbConnect, config.DatabaseName, config.UserCollection)
 
 	router := gin.Default()
 	tasks := router.Group("/tasks")
 	{
-		routers.TaskRoutes(tasks, *controllers.NewTaskService(taskRepo))
+		routers.TaskRoutes(tasks, *controllers.NewTaskController(taskRepo))
 	}
+	users := router.Group("/users")
+	{
+		routers.UserRoutes(users, *controllers.NewUserController(userRepo))
+	}
+
 	fmt.Println("Listening at 8080")
 	router.Run(":8080")
 }
